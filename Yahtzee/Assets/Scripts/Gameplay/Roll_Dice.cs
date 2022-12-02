@@ -19,6 +19,7 @@ public class Roll_Dice : MonoBehaviour
 
     [SerializeField] Image[] slots;
     public bool[] saved;
+    public int[] value;
     [SerializeField] Sprite[] dice;
     [SerializeField] Sprite[] rolls;
     [Space(10)]
@@ -38,6 +39,7 @@ public class Roll_Dice : MonoBehaviour
 
     bool fresh = true;
     int rollsLeft = 3;
+    bool rolled = false;
 
     ///////////////////////////////////
     // Exectutions
@@ -52,7 +54,15 @@ public class Roll_Dice : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        #region Debugging
+#if DB
+        if (Input.GetKeyDown(KeyCode.Keypad2))
+        {
+            rollsLeft = 3;
+            UpdateRollCounter(rollsLeft);
+        }
+#endif
+        #endregion
     }
 
     ///////////////////////////////////
@@ -74,6 +84,7 @@ public class Roll_Dice : MonoBehaviour
     {
         if (rollsLeft > 0)
         {
+            rolled = true;
             rollsLeft--;
             UpdateRollCounter(rollsLeft);
 
@@ -85,6 +96,40 @@ public class Roll_Dice : MonoBehaviour
         }
     }
 
+    public bool Rolled()
+    {
+        return rolled;
+    }
+
+    public void ResetRolls()
+    {
+        rollsLeft = 3;
+        UpdateRollCounter(rollsLeft);
+    }
+
+    public float RollDelay()
+    {
+        return rollDelay * 7;
+    }
+
+    public void ResetSaved()
+    {
+        for (int i = 0; i < saved.Length; i++)
+        {
+            if (saved[i])
+            {
+                saved[i] = false;
+                slots[i].color = normal;
+            }
+        }
+    }
+
+    public void ResetDiceSlots()
+    {
+        foreach (Image i in slots)
+            i.sprite = dice[7];
+    }
+
     ///////////////////////////////////
     // Private Methods
     ///////////////////////////////////
@@ -92,16 +137,16 @@ public class Roll_Dice : MonoBehaviour
     int ChooseRanNum()
     {
         int ranNum = Random.Range(1, 7);
-        #region Debugging
+#region Debugging
 #if DB
         Debug.Log("<i><color=red>" + ranNum + "</color></i>");
 #endif
-        #endregion
+#endregion
         return ranNum;
     }
 
     // s = 0,1,2,3,4 | r = 1,2,3,4,5,6 & invalid
-    void ChooseDiceSprite(int s, int r)
+    int ChooseDiceSprite(int s, int r)
     {
         switch (r)
         {
@@ -127,6 +172,7 @@ public class Roll_Dice : MonoBehaviour
                 slots[s].sprite = dice[6];
                 throw new System.Exception("Random Number not valid!!!");
         }
+        return r;
     }
 
     IEnumerator RollDice(int s)
@@ -139,12 +185,12 @@ public class Roll_Dice : MonoBehaviour
             int rolls = Random.Range(3, 6);
             for (int i = 0; i <= rolls; i++)
             {
-                #region Debugging
+#region Debugging
 #if DB
         Debug.Log("<b><color=yellow>" + slots[s] + "</color></b>");
 #endif
-                #endregion
-                ChooseDiceSprite(s, ChooseRanNum());
+#endregion
+                value[s] = ChooseDiceSprite(s, ChooseRanNum());
                 yield return new WaitForSeconds(rollDelay);
             }
         }
@@ -159,5 +205,7 @@ public class Roll_Dice : MonoBehaviour
         {
             RollButton.SetActive(false);
         }
+        else
+            RollButton.SetActive(true);
     }
 }
